@@ -9,6 +9,10 @@
     "storage"
   ],
   
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  
   "action": {
     "default_popup": "popup/popup.html",
     "default_title": "Arabic Transliteration"
@@ -18,7 +22,6 @@
     {
       "matches": ["<all_urls>"],
       "js": [
-        "content-scripts/transliteration-rules.js",
         "content-scripts/content.js"
       ],
       "run_at": "document_idle"
@@ -26,9 +29,7 @@
   ],
   
   "background": {
-    "service_worker": "background/background.js"
-  },
-  
-  "icons": {
+    "service_worker": "background/background.js",
+    "type": "module"
   }
 }

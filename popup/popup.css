@@ -1,0 +1,69 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 280px; /* Fixed width for the popup */
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+.container {
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 1.4em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.status-section {
+    margin-bottom: 25px;
+    font-size: 1.1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#status-label {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+#status-text {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    color: white;
+    min-width: 40px; /* Ensure consistent width for ON/OFF */
+}
+
+.status-on {
+    background-color: #4CAF50; /* Green */
+}
+
+.status-off {
+    background-color: #F44336; /* Red */
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%; /* Full width button */
+    box-sizing: border-box; /* Include padding in width */
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    background-color: #004085;
+}

@@ -1,14 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Translit</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <!-- Your popup UI will go here -->
-    <div id="app">
-        <h3>Arabic Transliteration</h3>
-        <!-- Toggle, settings, etc. -->
+    <div class="container">
+        <h1>Arabic Transliteration</h1>
+        <div class="status-section">
+            <span id="status-label">Status:</span>
+            <span id="status-text" class="status-off">OFF</span>
+        </div>
+        <button id="toggleButton">Toggle Transliteration</button>
     </div>
     <script src="popup.js"></script>
 </body>
