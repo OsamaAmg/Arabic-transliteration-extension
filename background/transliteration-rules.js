@@ -28,14 +28,16 @@ class ArabicTransliterator {
             { pattern: /S/g, arabic: 'ص' },   // Sad (emphatic 's')
             { pattern: /D/g, arabic: 'ض' },   // Dad (emphatic 'd')
             { pattern: /Z/g, arabic: 'ظ' },   // Zha (emphatic 'z')
-            // Optional: You could add { pattern: /T/g, arabic: 'ط' } but '6' is more common for Ta emphatic.
+            { pattern: /T/g, arabic: 'ت' },   // Ta (uppercase T for regular ta)
+            { pattern: /O/g, arabic: 'ؤ' },   // Waw with hamza (shift+o)
+            { pattern: /Y/g, arabic: 'ئ' },   // Ya with hamza (shift+y)
             // Optional: You could add { pattern: /H/g, arabic: 'ح' } but '7' is more common for Hha.
 
             // --- 4. Standard single letters (general case-insensitive) ---
             // These are the most common mappings.
             { pattern: /a/gi, arabic: 'ا' },   // Alif (long 'a' or placeholder)
             { pattern: /b/gi, arabic: 'ب' },   // Ba
-            { pattern: /t/gi, arabic: 'ت' },   // Ta
+            { pattern: /t/g, arabic: 'ة' },    // Taa marbuta (lowercase t)
             { pattern: /j/gi, arabic: 'ج' },   // Jeem
             { pattern: /d/gi, arabic: 'د' },   // Dal
             { pattern: /r/gi, arabic: 'ر' },   // Ra
@@ -219,7 +221,7 @@ class ArabicTransliterator {
             '7abibi',    // حبيبي
             'ya3ni',      // يعني
             'mesh kida',  // مش كدا
-            'el kitab',   // ال كتاب
+            'el kitab',   // ال كةاب
             'ana raye7',   // أنا رايح (using 7 for ح is common)
             'ana rayeH',   // أنا رايح (capital H for Hha is supported)
             '9alb',      // قلب
@@ -238,11 +240,18 @@ class ArabicTransliterator {
             'Ismou 3amr.', // إسمو عمرو. (mixed Arabizi, punctuation)
             'chou esmak?', // شو اسمك؟ (with ch)
             'Hello World!', // هلو ورلد! (non-Arabic characters remain)
-            'Thabt',      // ثبت
+            'Thabt',      // ثبت (uppercase T for regular ta)
+            'thabt',      // ثبة (lowercase t for taa marbuta)
             'Dhakira',    // ذاكرا
             'Shams',      // شمس
-            'Beit',      // بيت (diphthong, maps via 'b', 'e', 'i', 't')
+            'Beit',      // بية (diphthong, maps via 'b', 'e', 'i', 't')
             'Awlad',      // أولاد (diphthong, maps via 'a', 'w', 'l', 'a', 'd')
+            'madrasa',    // مدرسة (school - ends with taa marbuta)
+            'Madrasa',    // مدرسة (school - capital M but lowercase t)
+            'suOal',      // سؤال (question - waw with hamza)
+            'masaOil',    // مسائل (issues - waw with hamza)
+            'saYil',      // سائل (liquid - ya with hamza)
+            'raYis',      // رائس (president - ya with hamza)
         ];
 
         return testCases.map(testCase => ({
@@ -251,12 +260,6 @@ class ArabicTransliterator {
         }));
     }
 }
-
-// Remove the old CommonJS and global window assignments
-// if (typeof module !== 'undefined' && module.exports) {
-//     module.exports = ArabicTransliterator;
-// }
-// window.ArabicTransliterator = ArabicTransliterator;
 
 // Add this line to explicitly export the class for ES Modules
 export { ArabicTransliterator };
