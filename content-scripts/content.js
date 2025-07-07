@@ -1,557 +1,337 @@
 // content.js
-// Enhanced Arabic Transliteration script with advanced site compatibility
-// Includes debugging tools and multiple detection strategies
-
-console.log('[Content Script] Arabic Transliteration module loaded.'); 
+// Arabic Transliteration Extension - Production Version
+// Optimized for Google Search and other text input fields
 
 let isTransliteratorEnabled = false;
 let isUpdatingInput = false;
-let debugMode = true; // Enable detailed logging for troubleshooting
-
-// Store references to active elements for debugging
-let activeElements = new Set();
 let lastProcessedElement = null;
+let universalObserver = null;
+let initializationComplete = false;
 
 /**
- * Enhanced debugging function
+ * Find relevant input elements efficiently
  */
-function debugLog(message, data = null) {
-    if (debugMode) {
-        console.log(`[DEBUG] ${message}`, data || '');
-    }
-}
-
-/**
- * Analyzes an element to understand its input mechanism
- */
-function analyzeElement(element) {
-    const analysis = {
-        tagName: element.tagName,
-        type: element.type,
-        isContentEditable: element.isContentEditable,
-        hasValue: 'value' in element,
-        hasTextContent: !!element.textContent,
-        classList: Array.from(element.classList),
-        id: element.id,
-        shadowRoot: !!element.shadowRoot,
-        parentShadowRoot: !!element.getRootNode().host,
-        computedRole: window.getComputedStyle(element).getPropertyValue('role'),
-        ariaRole: element.getAttribute('role'),
-        isInput: element.matches('input, textarea, [contenteditable]'),
-        hasCompositionEvents: true, // We'll check this
-        rect: element.getBoundingClientRect()
-    };
-    
-    debugLog('Element Analysis:', analysis);
-    return analysis;
-}
-
-/**
- * Multiple strategies to detect input elements
- */
-function findAllInputElements() {
+function findInputElements() {
     const selectors = [
-        // Standard inputs
+        // Google Search specific
+        'input[name="q"]',
+        'textarea[name="q"]',
+        '.gLFyf',
+        'input.gLFyf',
+        'input[role="combobox"]',
+        'form[action*="/search"] input',
+        
+        // General inputs
         'input[type="text"]',
         'input[type="search"]',
+        'input[type="email"]',
+        'input[type="url"]',
+        'input[type="tel"]',
         'input:not([type])',
         'textarea',
         '[contenteditable="true"]',
-        '[contenteditable=""]',
-        
-        // ARIA inputs
         '[role="textbox"]',
-        '[role="searchbox"]',
-        '[role="combobox"]',
-        
-        // Common class patterns
-        '[class*="input"]',
-        '[class*="search"]',
-        '[class*="textbox"]',
-        '[class*="editor"]',
-        
-        // YouTube specific
-        '#search-input input',
-        'ytd-searchbox input',
-        '.ytd-searchbox input',
-        '#movie_player input',
-        
-        // Google specific
-        'input[name="q"]',
-        '[role="combobox"]',
-        '.gLFyf', // Google search input class
-        
-        // Common frameworks
-        '[data-testid*="input"]',
-        '[data-testid*="search"]',
+        '[role="searchbox"]'
     ];
     
     const elements = [];
     selectors.forEach(selector => {
         try {
-            const found = document.querySelectorAll(selector);
-            found.forEach(el => {
-                if (!elements.includes(el)) {
+            document.querySelectorAll(selector).forEach(el => {
+                if (!elements.includes(el) && isValidInputElement(el)) {
                     elements.push(el);
                 }
             });
         } catch (e) {
-            debugLog(`Invalid selector: ${selector}`, e);
+            // Skip invalid selectors
         }
     });
     
-    debugLog(`Found ${elements.length} potential input elements`);
     return elements;
 }
 
 /**
- * Enhanced element detection that works with shadow DOM
+ * Validate if an element is a valid input for transliteration
  */
-function findInputsInShadowDOM(root = document) {
-    const inputs = [];
+function isValidInputElement(element) {
+    if (!element || !element.tagName || !element.isConnected) return false;
     
-    function traverse(node) {
-        // Check current node
-        if (node.nodeType === Node.ELEMENT_NODE) {
-            if (isInputElement(node)) {
-                inputs.push(node);
-            }
-            
-            // Check shadow root
-            if (node.shadowRoot) {
-                traverse(node.shadowRoot);
-            }
-        }
-        
-        // Traverse children
-        for (const child of node.childNodes) {
-            traverse(child);
-        }
+    // Standard input validation
+    const tagName = element.tagName.toLowerCase();
+    if (tagName === 'input') {
+        const type = element.type?.toLowerCase();
+        return !type || ['text', 'search', 'email', 'url', 'tel'].includes(type);
     }
     
-    traverse(root);
-    return inputs;
-}
-
-/**
- * Improved input element detection
- */
-function isInputElement(element) {
-    if (!element || !element.tagName) return false;
+    if (tagName === 'textarea') return true;
     
-    // Standard checks
-    if (element.tagName === 'INPUT' && 
-        ['text', 'search', 'email', 'url', 'tel', 'password', ''].includes(element.type || '')) {
+    // ContentEditable elements
+    if (element.contentEditable === 'true' || element.isContentEditable) {
         return true;
     }
     
-    if (element.tagName === 'TEXTAREA') return true;
-    if (element.isContentEditable) return true;
-    
-    // ARIA roles
+    // Role-based validation
     const role = element.getAttribute('role');
-    if (['textbox', 'searchbox', 'combobox'].includes(role)) return true;
+    if (['textbox', 'searchbox', 'combobox'].includes(role)) {
+        return true;
+    }
     
-    // Check if element can receive text input
-    if (element.tabIndex >= 0 && 
-        (element.textContent !== undefined || element.value !== undefined)) {
-        const style = window.getComputedStyle(element);
-        if (style.cursor === 'text' || style.cursor === 'auto') {
-            return true;
-        }
+    // Skip disabled and readonly elements
+    if (element.disabled || element.readOnly) return false;
+    
+    // Skip hidden elements
+    if (element.offsetParent === null && element.style.position !== 'fixed') {
+        return false;
     }
     
     return false;
 }
 
 /**
- * Multiple event attachment strategies
+ * Check if element should be processed for transliteration
  */
-function attachAdvancedListeners() {
-    debugLog('Attaching advanced event listeners...');
-    
-    // Strategy 1: Standard event delegation (your current approach)
-    document.addEventListener('input', handleInputEvent, true); // Use capture phase
-    document.addEventListener('keydown', handleKeyEvent, true);
-    document.addEventListener('keyup', handleKeyEvent, true);
-    document.addEventListener('compositionstart', handleCompositionEvent, true);
-    document.addEventListener('compositionupdate', handleCompositionEvent, true);
-    document.addEventListener('compositionend', handleCompositionEvent, true);
-    
-    // Strategy 2: Focus tracking to catch dynamic elements
-    document.addEventListener('focusin', handleFocusEvent, true);
-    document.addEventListener('focusout', handleFocusEvent, true);
-    
-    // Strategy 3: Direct attachment to discovered elements
-    attachToDiscoveredElements();
-    
-    // Strategy 4: Mutation observer for dynamic content
-    setupMutationObserver();
-    
-    // Strategy 5: Polling for hard-to-catch elements
-    startPeriodicCheck();
+function isInputElement(element) {
+    return isValidInputElement(element);
 }
 
-function handleFocusEvent(event) {
-    const element = event.target;
-    debugLog('Focus event:', { type: event.type, element: element.tagName, id: element.id });
+/**
+ * Attach event listeners to input elements
+ */
+function attachEventListeners() {
+    const eventConfig = { passive: false, capture: true };
     
-    if (event.type === 'focusin' && isInputElement(element)) {
-        analyzeElement(element);
-        attachDirectListeners(element);
-        activeElements.add(element);
-    } else if (event.type === 'focusout') {
-        activeElements.delete(element);
-    }
-}
-
-function handleKeyEvent(event) {
-    const element = event.target;
-    debugLog('Key event:', { 
-        type: event.type, 
-        key: event.key, 
-        element: element.tagName,
-        isInput: isInputElement(element)
+    const eventHandlers = {
+        input: (event) => {
+            if (isInputElement(event.target) && isTransliteratorEnabled) {
+                processElement(event.target);
+            }
+        },
+        
+        keyup: (event) => {
+            if (isInputElement(event.target) && isTransliteratorEnabled) {
+                if (event.key.length === 1 || ['Backspace', 'Delete', 'Enter'].includes(event.key)) {
+                    processElement(event.target);
+                }
+            }
+        },
+        
+        focus: (event) => {
+            if (isInputElement(event.target)) {
+                lastProcessedElement = event.target;
+            }
+        }
+    };
+    
+    // Attach event listeners
+    Object.entries(eventHandlers).forEach(([eventType, handler]) => {
+        document.addEventListener(eventType, handler, eventConfig);
     });
     
-    if (isInputElement(element)) {
-        // Process after the key is processed
-        setTimeout(() => processElement(element), 0);
-    }
-}
-
-function handleCompositionEvent(event) {
-    debugLog('Composition event:', { type: event.type, data: event.data });
-    const element = event.target;
-    
-    if (event.type === 'compositionend' && isInputElement(element)) {
-        setTimeout(() => processElement(element), 0);
-    }
-}
-
-/**
- * Attach listeners directly to specific elements
- */
-function attachDirectListeners(element) {
-    // Remove existing listeners to avoid duplicates
-    element.removeEventListener('input', directInputHandler);
-    element.removeEventListener('keyup', directKeyHandler);
-    element.removeEventListener('paste', directPasteHandler);
-    
-    // Attach new listeners
-    element.addEventListener('input', directInputHandler);
-    element.addEventListener('keyup', directKeyHandler);
-    element.addEventListener('paste', directPasteHandler);
-    
-    debugLog('Direct listeners attached to:', element);
-}
-
-function directInputHandler(event) {
-    debugLog('Direct input event:', event.target);
-    processElement(event.target);
-}
-
-function directKeyHandler(event) {
-    debugLog('Direct key event:', { key: event.key, target: event.target });
-    setTimeout(() => processElement(event.target), 0);
-}
-
-function directPasteHandler(event) {
-    debugLog('Direct paste event:', event.target);
-    setTimeout(() => processElement(event.target), 50); // Longer delay for paste
-}
-
-/**
- * Process discovered elements immediately
- */
-function attachToDiscoveredElements() {
-    const elements = [
-        ...findAllInputElements(),
-        ...findInputsInShadowDOM()
-    ];
-    
-    debugLog(`Attaching to ${elements.length} discovered elements`);
-    
-    elements.forEach(element => {
-        analyzeElement(element);
-        attachDirectListeners(element);
-    });
-}
-
-/**
- * Watch for dynamically added elements
- */
-function setupMutationObserver() {
-    const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            mutation.addedNodes.forEach(node => {
+    // Set up mutation observer for dynamically added elements
+    universalObserver = new MutationObserver((mutations) => {
+        if (!isTransliteratorEnabled) return;
+        
+        let hasNewInputs = false;
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
                 if (node.nodeType === Node.ELEMENT_NODE) {
-                    // Check the added node itself
                     if (isInputElement(node)) {
-                        debugLog('New input element detected via mutation:', node);
-                        analyzeElement(node);
-                        attachDirectListeners(node);
-                    }
-                    
-                    // Check children of added node
-                    const childInputs = node.querySelectorAll ? 
-                        Array.from(node.querySelectorAll('input, textarea, [contenteditable], [role="textbox"]')) : [];
-                    
-                    childInputs.forEach(input => {
-                        if (isInputElement(input)) {
-                            debugLog('New child input detected via mutation:', input);
-                            analyzeElement(input);
-                            attachDirectListeners(input);
+                        hasNewInputs = true;
+                    } else {
+                        const inputs = node.querySelectorAll ? 
+                            node.querySelectorAll('input, textarea, [contenteditable]') : [];
+                        if (inputs.length > 0) {
+                            hasNewInputs = true;
                         }
-                    });
+                    }
                 }
             });
         });
+        
+        if (hasNewInputs) {
+            setTimeout(processPage, 100);
+        }
     });
     
-    observer.observe(document.body, {
+    universalObserver.observe(document.body, {
         childList: true,
         subtree: true,
-        attributes: true,
-        attributeFilter: ['contenteditable', 'role', 'class', 'id']
+        attributes: false
     });
-    
-    debugLog('Mutation observer setup complete');
 }
 
 /**
- * Periodic check for elements that might be missed
- */
-function startPeriodicCheck() {
-    setInterval(() => {
-        const newElements = findAllInputElements().filter(el => !activeElements.has(el));
-        if (newElements.length > 0) {
-            debugLog(`Periodic check found ${newElements.length} new elements`);
-            newElements.forEach(el => {
-                analyzeElement(el);
-                attachDirectListeners(el);
-            });
-        }
-    }, 2000); // Check every 2 seconds
-}
-
-/**
- * Universal element processing function
+ * Process an individual input element
  */
 function processElement(element) {
-    if (!isTransliteratorEnabled || isUpdatingInput || !isInputElement(element)) {
-        return;
-    }
+    if (!element || isUpdatingInput || !isTransliteratorEnabled) return;
     
-    lastProcessedElement = element;
-    debugLog('Processing element:', element);
+    const currentText = getCurrentText(element);
+    if (!currentText) return;
     
-    let currentText = '';
-    let cursorPosition = 0;
-    let isContentEditable = false;
-    
-    // Get text and cursor position based on element type
-    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-        currentText = element.value || '';
-        cursorPosition = element.selectionStart || 0;
-    } else if (element.isContentEditable) {
-        currentText = getContentEditableText(element);
-        cursorPosition = getCursorPositionInContentEditable(element);
-        isContentEditable = true;
-    } else if (element.getAttribute('role') === 'textbox' || element.getAttribute('role') === 'searchbox') {
-        // Handle ARIA textboxes
-        currentText = element.textContent || element.innerText || '';
-        // For ARIA elements, cursor position is harder to determine
-        cursorPosition = currentText.length;
-    }
-    
-    if (currentText.trim()) {
-        debugLog('Sending for transliteration:', { currentText, cursorPosition, isContentEditable });
-        debouncedRequestTransliteration(currentText, cursorPosition, element, isContentEditable);
-    }
-}
-
-// Your existing transliteration functions (keeping them as-is)
-function requestTransliteration(currentText, cursorPosition, inputElement, isContentEditable = false) {
-    debugLog('Requesting transliteration:', { currentText, cursorPosition, isContentEditable });
-
+    // Get transliterated text from background script
     chrome.runtime.sendMessage({
-        type: 'TRANSLITERATE_REAL_TIME',
-        payload: {
-            currentText,
-            cursorPosition
-        }
+        action: 'transliterate',
+        text: currentText
     }, (response) => {
-        if (chrome.runtime.lastError) {
-            console.warn(`[Content Script] Message send error: ${chrome.runtime.lastError.message}`);
-            return;
-        }
-
-        if (response && response.type === 'TRANSLITERATE_RESPONSE') {
-            debugLog('Received transliteration response:', response.payload);
-            const { text: transliteratedText, newCursorPosition } = response.payload;
-
-            if (isContentEditable) {
-                updateContentEditableElement(inputElement, transliteratedText, newCursorPosition);
-            } else {
-                updateStandardInputElement(inputElement, transliteratedText, newCursorPosition);
-            }
+        if (response && response.transliteratedText && response.transliteratedText !== currentText) {
+            updateElementText(element, response.transliteratedText);
         }
     });
 }
 
-function updateStandardInputElement(inputElement, transliteratedText, newCursorPosition) {
-    if (inputElement.value !== transliteratedText) {
-        isUpdatingInput = true;
-        inputElement.value = transliteratedText;
-        isUpdatingInput = false;
-
-        const finalCursorPosition = Math.min(newCursorPosition, transliteratedText.length);
-        inputElement.selectionStart = finalCursorPosition;
-        inputElement.selectionEnd = finalCursorPosition;
-        debugLog('Standard input updated');
+/**
+ * Get current text from input element
+ */
+function getCurrentText(element) {
+    if (element.tagName.toLowerCase() === 'input' || element.tagName.toLowerCase() === 'textarea') {
+        return element.value || '';
+    } else if (element.isContentEditable) {
+        return element.textContent || '';
     }
+    return '';
 }
 
-// Keep your existing contenteditable functions
-function updateContentEditableElement(element, transliteratedText, newCursorPosition) {
-    const currentText = getContentEditableText(element);
+/**
+ * Update element text with transliterated content
+ */
+function updateElementText(element, transliteratedText) {
+    if (isUpdatingInput) return;
     
-    if (currentText !== transliteratedText) {
-        isUpdatingInput = true;
-        setContentEditableText(element, transliteratedText);
-        setCursorPositionInContentEditable(element, newCursorPosition);
-        isUpdatingInput = false;
-        debugLog('ContentEditable element updated');
-    }
-}
-
-function getContentEditableText(element) {
-    return element.textContent || element.innerText || '';
-}
-
-function setContentEditableText(element, text) {
-    element.textContent = text;
-}
-
-function getCursorPositionInContentEditable(element) {
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return 0;
-    
-    const range = selection.getRangeAt(0);
-    if (!element.contains(range.startContainer)) return 0;
-    
-    const preCaretRange = document.createRange();
-    preCaretRange.selectNodeContents(element);
-    preCaretRange.setEnd(range.startContainer, range.startOffset);
-    
-    return preCaretRange.toString().length;
-}
-
-function setCursorPositionInContentEditable(element, position) {
-    const selection = window.getSelection();
-    const range = document.createRange();
+    isUpdatingInput = true;
     
     try {
-        const textNodeAndOffset = getTextNodeAndOffsetFromPosition(element, position);
-        if (textNodeAndOffset) {
-            range.setStart(textNodeAndOffset.node, textNodeAndOffset.offset);
-            range.setEnd(textNodeAndOffset.node, textNodeAndOffset.offset);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    } catch (error) {
-        console.warn('[Content Script] Error setting cursor position:', error);
-        range.selectNodeContents(element);
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-}
-
-function getTextNodeAndOffsetFromPosition(element, position) {
-    let currentPosition = 0;
-    
-    function walkTextNodes(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const textLength = node.textContent.length;
-            if (currentPosition + textLength >= position) {
-                return {
-                    node: node,
-                    offset: position - currentPosition
-                };
+        if (element.tagName.toLowerCase() === 'input' || element.tagName.toLowerCase() === 'textarea') {
+            const cursorPosition = element.selectionStart || transliteratedText.length;
+            element.value = transliteratedText;
+            
+            // Restore cursor position
+            const newPosition = Math.min(cursorPosition, transliteratedText.length);
+            element.setSelectionRange(newPosition, newPosition);
+            
+            // Trigger events
+            ['input', 'change'].forEach(eventType => {
+                const event = new Event(eventType, { bubbles: true });
+                element.dispatchEvent(event);
+            });
+        } else if (element.isContentEditable) {
+            const selection = window.getSelection();
+            const cursorPosition = selection.rangeCount > 0 ? 
+                selection.getRangeAt(0).startOffset : transliteratedText.length;
+            
+            element.textContent = transliteratedText;
+            
+            // Restore cursor position
+            try {
+                const range = document.createRange();
+                const textNode = element.firstChild || element;
+                const newPosition = Math.min(cursorPosition, transliteratedText.length);
+                
+                if (textNode.nodeType === Node.TEXT_NODE) {
+                    range.setStart(textNode, newPosition);
+                    range.setEnd(textNode, newPosition);
+                } else {
+                    range.selectNodeContents(element);
+                    range.collapse(false);
+                }
+                
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } catch (e) {
+                // Cursor position restoration failed, continue anyway
             }
-            currentPosition += textLength;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            for (let child of node.childNodes) {
-                const result = walkTextNodes(child);
-                if (result) return result;
-            }
+            
+            // Trigger input event
+            const event = new Event('input', { bubbles: true });
+            element.dispatchEvent(event);
         }
-        return null;
+    } catch (e) {
+        // Element update failed, continue anyway
+    } finally {
+        isUpdatingInput = false;
     }
+}
+
+/**
+ * Process all input elements on the page
+ */
+function processPage() {
+    if (!isTransliteratorEnabled) return;
     
-    return walkTextNodes(element);
+    const inputElements = findInputElements();
+    inputElements.forEach(element => {
+        if (getCurrentText(element)) {
+            processElement(element);
+        }
+    });
 }
 
-function debounce(func, delay) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-const debouncedRequestTransliteration = debounce(requestTransliteration, 200);
-
-// Legacy event handler for compatibility
-function handleInputEvent(event) {
-    debugLog('Legacy input event:', event.target);
-    processElement(event.target);
-}
-
-// Message handling
-chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === 'TRANSLITERATOR_STATE_UPDATE') {
-        isTransliteratorEnabled = message.isEnabled;
-        debugLog(`Transliteration state updated to: ${isTransliteratorEnabled ? 'ON' : 'OFF'}`);
+/**
+ * Handle messages from background script and popup
+ */
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    switch (message.action) {
+        case 'toggle':
+            isTransliteratorEnabled = message.enabled;
+            if (isTransliteratorEnabled) {
+                processPage();
+            }
+            sendResponse({ success: true });
+            break;
+            
+        case 'getStatus':
+            sendResponse({ 
+                enabled: isTransliteratorEnabled,
+                inputsFound: findInputElements().length
+            });
+            break;
+            
+        case 'processCurrentElement':
+            if (lastProcessedElement && isTransliteratorEnabled) {
+                processElement(lastProcessedElement);
+            }
+            sendResponse({ success: true });
+            break;
+            
+        default:
+            sendResponse({ success: false, error: 'Unknown action' });
     }
+    return true; // Keep message channel open for async response
 });
 
-// Initialization
-async function initializeContentScript() {
-    debugLog('Initializing enhanced content script...');
+/**
+ * Get initial state from background script
+ */
+function initializeContentScript() {
+    if (initializationComplete) return;
     
-    try {
-        const response = await chrome.runtime.sendMessage({ type: 'GET_TRANSLITERATOR_STATE' });
-        if (response && response.type === 'TRANSLITERATOR_STATE_RESPONSE') {
-            isTransliteratorEnabled = response.isEnabled;
-            debugLog(`Initial state fetched: ${isTransliteratorEnabled ? 'ON' : 'OFF'}`);
+    chrome.runtime.sendMessage({ action: 'getState' }, (response) => {
+        if (response) {
+            isTransliteratorEnabled = response.enabled || false;
+            
+            // Set up event listeners
+            attachEventListeners();
+            
+            // Process page if enabled
+            if (isTransliteratorEnabled) {
+                setTimeout(processPage, 500);
+            }
+            
+            initializationComplete = true;
         }
-    } catch (error) {
-        debugLog('Error getting initial state:', error);
-    }
-    
-    // Attach all listeners
-    attachAdvancedListeners();
-    
-    debugLog('Enhanced content script initialization complete');
+    });
 }
 
-// Initialize when ready
+// Initialize based on document state
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeContentScript);
 } else {
-    initializeContentScript();
+    setTimeout(initializeContentScript, 100);
 }
 
-// Export debug functions for console testing
-window.debugTransliteration = {
-    findAllInputs: findAllInputElements,
-    analyzeElement,
-    processElement,
-    toggleDebug: () => { debugMode = !debugMode; debugLog('Debug mode:', debugMode); },
-    getActiveElements: () => Array.from(activeElements),
-    getLastProcessed: () => lastProcessedElement
-};
+// Backup initialization
+setTimeout(() => {
+    if (!initializationComplete) {
+        initializeContentScript();
+    }
+}, 2000);

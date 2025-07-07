@@ -194,7 +194,7 @@ class ArabicTransliterator {
 
     /**
      * Get all available transliteration rules.
-     * Useful for debugging, displaying rules to the user, or testing.
+     * Useful for displaying rules to the user.
      * @returns {Array} - An array of rule objects (pattern source, arabic character, flags).
      */
     getRules() {
@@ -202,61 +202,6 @@ class ArabicTransliterator {
             pattern: rule.pattern.source, // Regex source string
             arabic: rule.arabic,         // Arabic character
             flags: rule.pattern.flags    // Regex flags (e.g., 'gi')
-        }));
-    }
-
-    /**
-     * Run a set of predefined test cases to verify the transliteration.
-     * @returns {Array} - An array of test case objects, each with input and expected output.
-     */
-    runTests() {
-        const testCases = [
-            'ahlan',      // أهلان
-            'marhaba',    // مرحبا
-            'salam',      // سلام
-            'shukran',    // شكران
-            'ma3lesh',    // معلش
-            'khalas',    // خلاص
-            'habibi',    // حبيبي
-            '7abibi',    // حبيبي
-            'ya3ni',      // يعني
-            'mesh kida',  // مش كدا
-            'el kitab',   // ال كةاب
-            'ana raye7',   // أنا رايح (using 7 for ح is common)
-            'ana rayeH',   // أنا رايح (capital H for Hha is supported)
-            '9alb',      // قلب
-            '6abeeb',    // طبيب
-            '8areeb',    // غريب
-            'Soura',      // صورة (with emphatic S)
-            'Doha',      // ضها (with emphatic D)
-            'Zahra',      // ظهرا (with emphatic Z)
-            'kifak?',    // كيفك؟ (with punctuation)
-            '2amar',      // قمر (hamza)
-            'wallahi',    // واللهي (vowel mapping)
-            'jameel',    // جميل (vowel mapping)
-            'fen',        // فين (vowel mapping)
-            'kbir',      // كبير (no explicit vowel, relies on consonants)
-            'Ana b7ibbak.', // أنا بحبك. (mixed Arabizi, punctuation)
-            'Ismou 3amr.', // إسمو عمرو. (mixed Arabizi, punctuation)
-            'chou esmak?', // شو اسمك؟ (with ch)
-            'Hello World!', // هلو ورلد! (non-Arabic characters remain)
-            'Thabt',      // ثبت (uppercase T for regular ta)
-            'thabt',      // ثبة (lowercase t for taa marbuta)
-            'Dhakira',    // ذاكرا
-            'Shams',      // شمس
-            'Beit',      // بية (diphthong, maps via 'b', 'e', 'i', 't')
-            'Awlad',      // أولاد (diphthong, maps via 'a', 'w', 'l', 'a', 'd')
-            'madrasa',    // مدرسة (school - ends with taa marbuta)
-            'Madrasa',    // مدرسة (school - capital M but lowercase t)
-            'suOal',      // سؤال (question - waw with hamza)
-            'masaOil',    // مسائل (issues - waw with hamza)
-            'saYil',      // سائل (liquid - ya with hamza)
-            'raYis',      // رائس (president - ya with hamza)
-        ];
-
-        return testCases.map(testCase => ({
-            input: testCase,
-            output: this.transliterate(testCase)
         }));
     }
 }

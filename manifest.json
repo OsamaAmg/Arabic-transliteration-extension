@@ -6,7 +6,8 @@
   
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
   
   "host_permissions": [
@@ -20,16 +21,55 @@
   
   "content_scripts": [
     {
+      "matches": [
+        "https://www.google.com/*",
+        "https://google.com/*",
+        "https://*.google.com/*",
+        "https://*.google.co.uk/*",
+        "https://*.google.ca/*",
+        "https://*.google.de/*",
+        "https://*.google.fr/*",
+        "https://*.google.es/*",
+        "https://*.google.it/*",
+        "https://*.google.nl/*",
+        "https://*.google.com.au/*",
+        "https://*.google.co.jp/*",
+        "https://www.youtube.com/*",
+        "https://youtube.com/*",
+        "https://*.youtube.com/*"
+      ],
+      "js": [
+        "content-scripts/content.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
+    },
+    {
       "matches": ["<all_urls>"],
       "js": [
         "content-scripts/content.js"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "exclude_matches": [
+        "https://www.google.com/*",
+        "https://google.com/*",
+        "https://*.google.com/*",
+        "https://www.youtube.com/*",
+        "https://youtube.com/*",
+        "https://*.youtube.com/*"
+      ]
     }
   ],
   
   "background": {
     "service_worker": "background/background.js",
     "type": "module"
-  }
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["content-scripts/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
