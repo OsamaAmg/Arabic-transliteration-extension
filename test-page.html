@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Transliteration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-input {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .instructions {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Arabic Transliteration Extension Test</h1>
+    
+    <div class="instructions">
+        <h3>Instructions:</h3>
+        <ul>
+            <li>Make sure the Arabic Transliteration extension is installed and enabled</li>
+            <li>Type Latin text using Arabizi conventions (e.g., "ahlan wa sahlan")</li>
+            <li>The text should automatically convert to Arabic</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Input Field (input[type="text"]):</h3>
+        <input type="text" class="test-input" placeholder="Type here: ahlan wa sahlan">
+    </div>
+
+    <div class="test-section">
+        <h3>Test Search Field (input[type="search"]):</h3>
+        <input type="search" class="test-input" placeholder="Search: marHaba">
+    </div>
+
+    <div class="test-section">
+        <h3>Test Textarea:</h3>
+        <textarea class="test-input" rows="4" placeholder="Type multiple lines here..."></textarea>
+    </div>
+
+    <div class="test-section">
+        <h3>Test ContentEditable:</h3>
+        <div class="test-input" contenteditable="true" style="min-height: 50px;">
+            Click here and type: kayf Halak?
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Google Search Simulation:</h3>
+        <input type="text" name="q" class="test-input gLFyf" placeholder="Google search simulation: al-3arabiyya">
+    </div>
+
+    <div class="test-section">
+        <h3>Test Common Arabizi Patterns:</h3>
+        <ul>
+            <li><strong>ahlan</strong> → أهلان</li>
+            <li><strong>marHaba</strong> → مرحبا</li>
+            <li><strong>3arabiyya</strong> → عربية</li>
+            <li><strong>sha7al</strong> → شحال</li>
+            <li><strong>kayf Halak</strong> → كيف حالك</li>
+        </ul>
+    </div>
+
+    <script>
+        // Simple test to verify input detection
+        console.log('Test page loaded');
+        
+        // Log when inputs are focused
+        document.querySelectorAll('input, textarea, [contenteditable]').forEach(input => {
+            input.addEventListener('focus', () => {
+                console.log('Input focused:', input);
+            });
+            
+            input.addEventListener('input', () => {
+                console.log('Input changed:', input.value || input.textContent);
+            });
+        });
+    </script>
+</body>
+</html>

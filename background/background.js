@@ -241,7 +241,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
     // Handle new content script messages
     else if (message.action === 'transliterate') {
-        const transliteratedText = transliterator.transliterateText(message.text);
+        const transliteratedText = transliterator.transliterate(message.text);
         sendResponse({ transliteratedText });
         return true;
     } else if (message.action === 'getState') {
