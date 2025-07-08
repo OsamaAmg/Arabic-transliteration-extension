@@ -181,7 +181,7 @@ class ArabicTransliterator {
      */
     setKeyboardLayout(layout) {
         this.keyboardLayout = layout;
-        // TODO: Implement logic here to adjust rules if specific layouts require different mappings.
+        // Keyboard layout support for future enhancements
     }
 
     /**

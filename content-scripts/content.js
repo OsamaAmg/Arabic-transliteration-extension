@@ -1,6 +1,5 @@
-// content.js
-// Arabic Transliteration Extension - Production Version
-// Optimized for Google Search and other text input fields
+// Arabic Transliteration Extension - Content Script
+// Handles real-time transliteration for text input fields
 
 let isTransliteratorEnabled = false;
 let isUpdatingInput = false;
@@ -9,7 +8,7 @@ let universalObserver = null;
 let initializationComplete = false;
 
 /**
- * Find relevant input elements efficiently
+ * Find all relevant input elements on the page
  */
 function findInputElements() {
     const selectors = [
@@ -51,7 +50,7 @@ function findInputElements() {
 }
 
 /**
- * Validate if an element is a valid input for transliteration
+ * Validate if element is suitable for transliteration
  */
 function isValidInputElement(element) {
     if (!element || !element.tagName || !element.isConnected) return false;
@@ -76,10 +75,8 @@ function isValidInputElement(element) {
         return true;
     }
     
-    // Skip disabled and readonly elements
+    // Skip disabled/readonly and hidden elements
     if (element.disabled || element.readOnly) return false;
-    
-    // Skip hidden elements
     if (element.offsetParent === null && element.style.position !== 'fixed') {
         return false;
     }
@@ -95,7 +92,7 @@ function isInputElement(element) {
 }
 
 /**
- * Attach event listeners to input elements
+ * Set up event listeners and mutation observer
  */
 function attachEventListeners() {
     const eventConfig = { passive: false, capture: true };
@@ -127,7 +124,7 @@ function attachEventListeners() {
         document.addEventListener(eventType, handler, eventConfig);
     });
     
-    // Set up mutation observer for dynamically added elements
+    // Set up mutation observer for dynamic content
     universalObserver = new MutationObserver((mutations) => {
         if (!isTransliteratorEnabled) return;
         
@@ -161,7 +158,7 @@ function attachEventListeners() {
 }
 
 /**
- * Process an individual input element
+ * Process individual input element for transliteration
  */
 function processElement(element) {
     if (!element || isUpdatingInput || !isTransliteratorEnabled) return;
@@ -181,7 +178,7 @@ function processElement(element) {
 }
 
 /**
- * Get current text from input element
+ * Get current text from element
  */
 function getCurrentText(element) {
     if (element.tagName.toLowerCase() === 'input' || element.tagName.toLowerCase() === 'textarea') {
@@ -193,7 +190,7 @@ function getCurrentText(element) {
 }
 
 /**
- * Update element text with transliterated content
+ * Update element with transliterated text
  */
 function updateElementText(element, transliteratedText) {
     if (isUpdatingInput) return;
@@ -238,7 +235,7 @@ function updateElementText(element, transliteratedText) {
                 selection.removeAllRanges();
                 selection.addRange(range);
             } catch (e) {
-                // Cursor position restoration failed, continue anyway
+                // Cursor restoration failed, continue
             }
             
             // Trigger input event
@@ -246,14 +243,14 @@ function updateElementText(element, transliteratedText) {
             element.dispatchEvent(event);
         }
     } catch (e) {
-        // Element update failed, continue anyway
+        // Element update failed
     } finally {
         isUpdatingInput = false;
     }
 }
 
 /**
- * Process all input elements on the page
+ * Process all input elements on page
  */
 function processPage() {
     if (!isTransliteratorEnabled) return;
@@ -300,7 +297,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 /**
- * Get initial state from background script
+ * Initialize content script
  */
 function initializeContentScript() {
     if (initializationComplete) return;
