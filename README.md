@@ -28,7 +28,7 @@ A real-time English-to-Arabic transliteration Chrome extension that converts Ara
 2. **Manual Installation (Developer Mode)**
    ```bash
    # Clone the repository
-   git clone https://github.com/yourusername/arabic-transliteration-extension.git
+   git clone https://github.com/OsamaAmg/Arabic-transliteration-extension.git
    
    # Load in Chrome
    1. Open chrome://extensions/
@@ -104,7 +104,7 @@ arabic-transliteration-extension/
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/arabic-transliteration-extension.git
+git clone https://github.com/OsamaAmg/Arabic-transliteration-extension.git
 cd arabic-transliteration-extension
 
 # Load in Chrome (Developer Mode)
@@ -197,7 +197,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/arabic-transliteration-extension/issues)
+- **Issues**: [GitHub Issues](https://github.com/OsamaAmg/Arabic-transliteration-extension/issues)
 - **Documentation**: [Technical Docs](TECHNICAL-DOCUMENTATION.md)
 - **Chrome Web Store**: (Coming Soon)
 

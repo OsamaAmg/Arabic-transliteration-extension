@@ -5,7 +5,7 @@ Thank you for your interest in contributing to the Arabic Transliteration Extens
 ## 🤝 How to Contribute
 
 ### Reporting Issues
-- Use the [GitHub Issues](https://github.com/yourusername/arabic-transliteration-extension/issues) page
+- Use the [GitHub Issues](https://github.com/OsamaAmg/Arabic-transliteration-extension/issues) page
 - Check if the issue already exists before creating a new one
 - Provide detailed information about the problem
 - Include steps to reproduce the issue
