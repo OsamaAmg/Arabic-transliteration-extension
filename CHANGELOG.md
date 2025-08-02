@@ -68,7 +68,7 @@ This is the initial release of the Arabic Transliteration Extension. The extensi
 **Known Limitations:**
 - Currently supports Chrome/Edge only
 - Fixed transliteration rules (customization planned for future versions)
-- Manifest V2 (migration to V3 planned)
+- Cannot write mixed language paragraphs (Arabic + English) - extension transliterates all text to Arabic
 
 **Coming Next:**
 - Chrome Web Store publication

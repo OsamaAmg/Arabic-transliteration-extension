@@ -1,4 +1,4 @@
-# Arabic Transliteration Chrome Extension
+# HarfSync - Arabic Transliteration Chrome Extension
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-brightgreen)](https://chrome.google.com/webstore)
 [![Manifest V3](https://img.shields.io/badge/Manifest-V3-blue)](https://developer.chrome.com/docs/extensions/mv3/intro/)
@@ -12,7 +12,7 @@ A real-time English-to-Arabic transliteration Chrome extension that converts Ara
 - **Complete Arabic coverage** - All 28 Arabic letters + Hamza variants
 - **Universal compatibility** - Works on all websites
 - **Google Search optimized** - Enhanced performance for Google services
-- **Keyboard shortcut** - Toggle with `Ctrl+Shift+A`
+- **Keyboard shortcut** - Toggle with `Ctrl+Shift+Q` (Windows/Linux) or `Cmd+Shift+Q` (Mac)
 - **Cursor preservation** - Maintains cursor position during conversion
 - **Production-ready** - Optimized for performance and security
 
@@ -22,7 +22,7 @@ A real-time English-to-Arabic transliteration Chrome extension that converts Ara
 
 1. **Chrome Web Store** (Coming Soon)
    - Visit the Chrome Web Store
-   - Search for "Arabic Transliteration Helper"
+   - Search for "HarfSync"
    - Click "Add to Chrome"
 
 2. **Manual Installation (Developer Mode)**
@@ -39,9 +39,14 @@ A real-time English-to-Arabic transliteration Chrome extension that converts Ara
 
 ### Usage
 
-1. **Enable the extension** - Click the extension icon or press `Ctrl+Shift+A`
+1. **Enable the extension** - Click the extension icon or press `Ctrl+Shift+Q`
 2. **Type in any input field** - Use Latin characters (Arabizi)
 3. **See instant conversion** - Text converts to Arabic automatically
+
+### Keyboard Shortcuts
+
+- **Windows/Linux**: `Ctrl+Shift+Q` - Toggle transliteration on/off
+- **Mac**: `Cmd+Shift+Q` - Toggle transliteration on/off
 
 ## 📖 Transliteration Guide
 
@@ -64,7 +69,6 @@ n → ن    h → ه    w → و    y → ي
 
 ### Examples
 ```
-ahlan → أهلان (hello)
 marHaba → مرحبا (welcome)
 sha7al → شحال (how much)
 3arabiyya → عربية (Arabic)
@@ -80,17 +84,17 @@ sha7al → شحال (how much)
 
 ### Project Structure
 ```
-arabic-transliteration-extension/
+harfsync-arabic-transliteration/
 ├── manifest.json                    # Extension configuration
 ├── background/
 │   ├── background.js               # Service worker
 │   └── transliteration-rules.js    # Transliteration engine
 ├── content-scripts/
-│   └── content.js                  # Content script (338 lines)
+│   └── content.js                  # Content script for page interaction
 ├── popup/
-│   ├── popup.html                  # Extension popup
+│   ├── popup.html                  # Extension popup interface
 │   ├── popup.css                   # Popup styling
-│   └── popup.js                    # Popup logic
+│   └── popup.js                    # Popup functionality
 ├── icons/                          # Extension icons
 └── assets/                         # Additional assets
 ```
@@ -124,6 +128,9 @@ F12 → Console (on any webpage)
 
 # Debug background script
 chrome://extensions/ → Background page
+
+# Test keyboard shortcut
+Press Ctrl+Shift+Q (Windows/Linux) or Cmd+Shift+Q (Mac)
 ```
 
 ### Code Quality
@@ -164,6 +171,7 @@ Use the included `test-page.html` to validate:
 - ✅ Numerical substitutions (2-9)
 - ✅ Case sensitivity handling
 - ✅ Universal website compatibility
+- ✅ Keyboard shortcut functionality
 
 ## 📚 Documentation
 
@@ -214,4 +222,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with ❤️ for the Arabic-speaking community**
 
-*Real-time Arabic transliteration - bridging languages, connecting cultures*
+*HarfSync - Real-time Arabic transliteration, bridging languages, connecting cultures*

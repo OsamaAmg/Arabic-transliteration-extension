@@ -71,6 +71,29 @@ button {
     transition: background-color 0.2s ease;
     width: 100%; 
     box-sizing: border-box; 
+    margin-bottom: 15px;
+}
 
+button:hover {
+    background-color: #d63321;
+}
 
+button:active {
+    background-color: #c2291a;
+}
+
+.shortcut-info {
+    font-size: 0.85em;
+    color: #666;
+    margin-top: 10px;
+}
+
+kbd {
+    background-color: #f1f3f4;
+    border: 1px solid #dadce0;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #333;
 }

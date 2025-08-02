@@ -317,5 +317,26 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
     }
 });
 
-// 6. Initialize the state when the service worker starts up.
+// 6. Listen for keyboard commands
+chrome.commands.onCommand.addListener(async (command) => {
+    if (command === 'toggle-transliteration') {
+        const currentState = transliterator.isTransliteratorEnabled();
+        const newState = !currentState;
+
+        transliterator.setEnabled(newState);
+        updateBadge(newState);
+
+        try {
+            await chrome.storage.local.set({ [STORAGE_KEY_ENABLED]: newState });
+            // State toggled via keyboard shortcut
+        } catch (error) {
+            console.error('[Background] Error saving transliterator state (keyboard shortcut):', error);
+        }
+
+        // Broadcast to all tabs
+        await broadcastStateUpdate(newState);
+    }
+});
+
+// 7. Initialize the state when the service worker starts up.
 initializeTransliteratorState();
