@@ -21,7 +21,7 @@ A real-time English-to-Arabic transliteration Chrome extension that converts Ara
 ### Installation
 
 1. **Chrome Web Store** (Coming Soon)
-   - Visit the Chrome Web Store
+   - Visit [harfsync.com](https://harfsync.com) or the Chrome Web Store
    - Search for "HarfSync"
    - Click "Add to Chrome"
 
