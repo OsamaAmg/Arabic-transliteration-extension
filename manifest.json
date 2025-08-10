@@ -2,20 +2,29 @@
   "manifest_version": 3,
   "name": "HarfSync - Arabic Transliteration",
   "short_name": "HarfSync",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Real-time English to Arabic transliteration for web input fields",
-  
+
   "permissions": [
     "activeTab",
     "storage",
     "scripting"
   ],
-  
+
   "host_permissions": [
     "<all_urls>"
   ],
-  
+
+  "icons": {
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+
   "action": {
+    "default_icon": {
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    },
     "default_popup": "popup/popup.html",
     "default_title": "Arabic Transliteration"
   },
@@ -29,7 +38,7 @@
       "description": "Toggle Arabic transliteration on/off"
     }
   },
-  
+
   "content_scripts": [
     {
       "matches": [
@@ -71,12 +80,12 @@
       ]
     }
   ],
-  
+
   "background": {
     "service_worker": "background/background.js",
     "type": "module"
   },
-  
+
   "web_accessible_resources": [
     {
       "resources": ["content-scripts/*"],
